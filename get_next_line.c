@@ -6,7 +6,7 @@
 /*   By: anarama <anarama@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/09 17:14:30 by anarama           #+#    #+#             */
-/*   Updated: 2024/04/12 20:37:12 by anarama          ###   ########.fr       */
+/*   Updated: 2024/04/16 19:07:20 by anarama          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,12 +25,12 @@ char	*extract_line(char	**leftovers)
 		len_line = newline_index - *leftovers + 1;
 		line = ft_calloc(len_line + 1, 1);
 		if (!line)
-			return (NULL);
-		ft_memcpy(line, *leftovers, len_line);
+			return (free(*leftovers), *leftovers = NULL, NULL);
+		line = ft_memcpy(line, *leftovers, len_line);
 		new_leftovers = ft_strdup(newline_index + 1);
-		if (!new_leftovers)
-			return (NULL);
 		free(*leftovers);
+		if (!new_leftovers)
+			return (free(line), *leftovers = NULL, NULL);
 		*leftovers = new_leftovers;
 	}
 	else 
@@ -42,6 +42,14 @@ char	*extract_line(char	**leftovers)
 	return (line);
 }
 
+void	*free_memory(char **leftovers, char **buffer)
+{
+	free(*buffer);
+	free(*leftovers);
+	*leftovers = NULL;
+	return (NULL); // I dont want to always return null instantly?
+}
+
 char	*get_next_line(int fd)
 {
 	static char	*leftovers = NULL;
@@ -49,25 +57,32 @@ char	*get_next_line(int fd)
 	char		*buffer;
 	char		*temp;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || fd == 1 || fd == 2)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	while (ft_strchr(leftovers, '\n') == NULL)
 	{
 		buffer = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
 		if (!buffer)
-		{
-			free(leftovers);
-			return (NULL);
-		}
+			return (free_memory(&leftovers, &buffer));
 		read_bytes = read(fd, buffer, BUFFER_SIZE);
-		if (read_bytes <= 0)
+		if (*buffer == '\0')
 		{
 			free(buffer);
+			if (leftovers == NULL || *leftovers == '\0')
+				return (NULL);
+			break;
+		}
+		if (read_bytes < 0)
+			return (free_memory(&leftovers, &buffer));
+		if (read_bytes == 0)
+		{
+			free(buffer);
+			if (leftovers == NULL || *leftovers == '\0')
+				return (NULL);
 			break ;
 		}
 		temp = ft_strjoin(leftovers, buffer);
-		free(leftovers);
-		free(buffer);
+		free_memory(&leftovers, &buffer);
 		if (temp == NULL)
 			return (NULL);
 		leftovers = temp;
@@ -75,12 +90,14 @@ char	*get_next_line(int fd)
 	return (extract_line(&leftovers));
 }
 
+//what if i put non existing fd?
+
 // int	main(void)
 // {
 // 	int		fd;
 // 	char	*line;
 
-// 	fd = open("testfile.txt", O_RDONLY);
+// 	fd = open("test2.txt", O_RDONLY);
 // 	if (fd < 0)
 // 		return (1);
 // 	line = get_next_line(fd);

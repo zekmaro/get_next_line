@@ -6,7 +6,7 @@
 /*   By: anarama <anarama@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/10 11:21:46 by anarama           #+#    #+#             */
-/*   Updated: 2024/04/12 20:38:57 by anarama          ###   ########.fr       */
+/*   Updated: 2024/04/16 18:40:02 by anarama          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	*ft_calloc(size_t num, size_t size)
 
 	total_size = size * num;
 	if (num == 0 || size == 0)
-		total_size = 1;
+		total_size = 0;
 	if (SIZE_MAX / num < size)
 		return (NULL);
 	mem = (char *)malloc(total_size);
@@ -35,27 +35,24 @@ void	*ft_calloc(size_t num, size_t size)
 	return ((void *)temp_mem);
 }
 
-char    *ft_strchr(const char *str, int c)
+char    *ft_strchr(char *str, char c)
 {
-    unsigned char   unsigned_c;
-
 	if (str == NULL)
 		return (NULL);
-    unsigned_c = (unsigned char)c;
     while (*str)
     {
-        if ((unsigned char)(*str) == unsigned_c)
-            return ((char *)str);
+        if (*str == c)
+            return (str);
         str++;
     }
-    if (unsigned_c == '\0')
-        return ((char *)str);
+    if (c == '\0')
+        return (str);
     return (NULL);
 }
 
 size_t ft_strlen(char const *s)
 {
-    unsigned int    i;
+    size_t    i;
 
     i = 0;
     if (s == NULL)
@@ -70,18 +67,16 @@ size_t ft_strlen(char const *s)
 
 char    *ft_strjoin(char const *s1, char const *s2)
 {
-    unsigned int    len_s1;
-    unsigned int    len_s2;
-    char            *cat_result;
-    char            *temp_cat_result;
+    size_t    len_s1;
+    size_t    len_s2;
+    char      *cat_result;
+    char      *temp_cat_result;
 
-	if (s2 == NULL)
-		return (NULL);
 	if (s1 == NULL)
 		return (ft_strdup(s2));
     len_s1 = ft_strlen(s1);
     len_s2 = ft_strlen(s2);
-    cat_result = (char *)malloc(sizeof(char) * (len_s1 + len_s2) + 1);
+    cat_result = (char *)ft_calloc((len_s1 + len_s2) + 1, 1);
     if (!cat_result)
         return (NULL);
     temp_cat_result = cat_result;
@@ -89,7 +84,6 @@ char    *ft_strjoin(char const *s1, char const *s2)
         *cat_result++ = *s1++;
     while (*s2)
         *cat_result++ = *s2++;
-    *cat_result = '\0';
     return (temp_cat_result);
 }
 
