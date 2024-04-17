@@ -6,7 +6,7 @@
 /*   By: anarama <anarama@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/09 17:14:30 by anarama           #+#    #+#             */
-/*   Updated: 2024/04/16 19:07:20 by anarama          ###   ########.fr       */
+/*   Updated: 2024/04/17 11:18:23 by anarama          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,13 @@ char	*extract_line(char	**leftovers)
 void	*free_memory(char **leftovers, char **buffer)
 {
 	free(*buffer);
-	free(*leftovers);
-	*leftovers = NULL;
-	return (NULL); // I dont want to always return null instantly?
+	*buffer = NULL;
+	if (*leftovers)
+	{
+		free(*leftovers);
+		*leftovers = NULL;
+	}
+	return (NULL);
 }
 
 char	*get_next_line(int fd)
@@ -65,20 +69,17 @@ char	*get_next_line(int fd)
 		if (!buffer)
 			return (free_memory(&leftovers, &buffer));
 		read_bytes = read(fd, buffer, BUFFER_SIZE);
-		if (*buffer == '\0')
-		{
-			free(buffer);
-			if (leftovers == NULL || *leftovers == '\0')
-				return (NULL);
-			break;
-		}
 		if (read_bytes < 0)
 			return (free_memory(&leftovers, &buffer));
-		if (read_bytes == 0)
+		if (*buffer == '\0' || read_bytes == 0)
 		{
 			free(buffer);
+			buffer = NULL;
 			if (leftovers == NULL || *leftovers == '\0')
+			{
+				free(leftovers);
 				return (NULL);
+			}
 			break ;
 		}
 		temp = ft_strjoin(leftovers, buffer);
