@@ -6,11 +6,26 @@
 /*   By: anarama <anarama@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/09 17:14:30 by anarama           #+#    #+#             */
-/*   Updated: 2024/04/17 11:18:23 by anarama          ###   ########.fr       */
+/*   Updated: 2024/04/19 13:14:20 by anarama          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+
+size_t	ft_strlen(char const *s)
+{
+	size_t	i;
+
+	i = 0;
+	if (s == NULL)
+		return (0);
+	while (*s)
+	{
+		i++;
+		s++;
+	}
+	return (i);
+}
 
 char	*extract_line(char	**leftovers)
 {
@@ -25,33 +40,26 @@ char	*extract_line(char	**leftovers)
 		len_line = newline_index - *leftovers + 1;
 		line = ft_calloc(len_line + 1, 1);
 		if (!line)
-			return (free(*leftovers), *leftovers = NULL, NULL);
+			return (ft_free(leftovers), NULL);
 		line = ft_memcpy(line, *leftovers, len_line);
 		new_leftovers = ft_strdup(newline_index + 1);
-		free(*leftovers);
+		ft_free(leftovers);
 		if (!new_leftovers)
-			return (free(line), *leftovers = NULL, NULL);
+			return (ft_free(&line), NULL);
 		*leftovers = new_leftovers;
 	}
-	else 
+	else
 	{
 		line = ft_strdup(*leftovers);
-		free(*leftovers);
-		*leftovers = NULL;
+		ft_free(leftovers);
 	}
 	return (line);
 }
 
-void	*free_memory(char **leftovers, char **buffer)
+void	ft_free(char **str)
 {
-	free(*buffer);
-	*buffer = NULL;
-	if (*leftovers)
-	{
-		free(*leftovers);
-		*leftovers = NULL;
-	}
-	return (NULL);
+	free(*str);
+	*str = NULL;
 }
 
 char	*get_next_line(int fd)
@@ -59,7 +67,6 @@ char	*get_next_line(int fd)
 	static char	*leftovers = NULL;
 	ssize_t		read_bytes;
 	char		*buffer;
-	char		*temp;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
@@ -67,48 +74,40 @@ char	*get_next_line(int fd)
 	{
 		buffer = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
 		if (!buffer)
-			return (free_memory(&leftovers, &buffer));
+			return (ft_free(&leftovers), ft_free(&buffer), NULL);
 		read_bytes = read(fd, buffer, BUFFER_SIZE);
 		if (read_bytes < 0)
-			return (free_memory(&leftovers, &buffer));
-		if (*buffer == '\0' || read_bytes == 0)
+			return (ft_free(&leftovers), ft_free(&buffer), NULL);
+		if (read_bytes == 0)
 		{
-			free(buffer);
-			buffer = NULL;
+			ft_free(&buffer);
 			if (leftovers == NULL || *leftovers == '\0')
-			{
-				free(leftovers);
-				return (NULL);
-			}
+				return (ft_free(&leftovers), NULL);
 			break ;
 		}
-		temp = ft_strjoin(leftovers, buffer);
-		free_memory(&leftovers, &buffer);
-		if (temp == NULL)
-			return (NULL);
-		leftovers = temp;
+		leftovers = ft_strjoin(leftovers, buffer);
 	}
 	return (extract_line(&leftovers));
 }
 
-//what if i put non existing fd?
+// what if i put non existing fd? handle max possible fd
 
-// int	main(void)
-// {
-// 	int		fd;
-// 	char	*line;
+int	main(void)
+{
+	int		fd;
+	char	*line;
 
-// 	fd = open("test2.txt", O_RDONLY);
-// 	if (fd < 0)
-// 		return (1);
-// 	line = get_next_line(fd);
-// 	printf("%s", line);
-// 	free(line);
-// 	while (line)
-// 	{
-// 		line = get_next_line(fd);
-// 		printf("%s", line);
-// 		free(line);
-// 	}
-// 	close(fd);
-// }
+	fd = open("a.out", O_RDONLY);
+	if (fd < 0)
+		return (1);
+	line = get_next_line(fd);
+	printf("%s", line);
+	free(line);
+	while (line)
+	{
+		line = get_next_line(fd);
+		printf("%s", line);
+		free(line);
+	}
+	close(fd);
+}
