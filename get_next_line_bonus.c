@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: anarama <anarama@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/09 17:14:30 by anarama           #+#    #+#             */
-/*   Updated: 2024/04/24 22:20:40 by anarama          ###   ########.fr       */
+/*   Created: 2024/04/21 17:07:04 by anarama           #+#    #+#             */
+/*   Updated: 2024/04/22 11:42:42 by anarama          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 size_t	ft_strlen(char const *s)
 {
@@ -64,28 +64,28 @@ void	ft_free(char **str)
 
 char	*get_next_line(int fd)
 {
-	static char	*leftovers = NULL;
+	static char	*leftovers[MAX_FD] = {NULL};
 	ssize_t		read_bytes;
 	char		*buffer;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || fd >= MAX_FD)
 		return (NULL);
-	while (ft_strchr(leftovers, '\n') == NULL)
+	while (ft_strchr(leftovers[fd], '\n') == NULL)
 	{
 		buffer = (char *)ft_calloc(BUFFER_SIZE + 1, 1);
 		if (!buffer)
-			return (ft_free(&leftovers), ft_free(&buffer), NULL);
+			return (ft_free(&leftovers[fd]), ft_free(&buffer), NULL);
 		read_bytes = read(fd, buffer, BUFFER_SIZE);
 		if (read_bytes < 0)
-			return (ft_free(&buffer), NULL);
+			return (ft_free(&leftovers[fd]), ft_free(&buffer), NULL);
 		if (read_bytes == 0)
 		{
 			ft_free(&buffer);
-			if (leftovers == NULL || *leftovers == '\0')
-				return (ft_free(&leftovers), NULL);
+			if (leftovers[fd] == NULL || *leftovers[fd] == '\0')
+				return (ft_free(&leftovers[fd]), NULL);
 			break ;
 		}
-		leftovers = ft_strjoin(leftovers, buffer);
+		leftovers[fd] = ft_strjoin(leftovers[fd], buffer);
 	}
-	return (extract_line(&leftovers));
+	return (extract_line(&leftovers[fd]));
 }
